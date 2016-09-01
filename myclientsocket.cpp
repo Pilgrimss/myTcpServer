@@ -1,0 +1,25 @@
+#include "myclientsocket.h"
+#include <QHostAddress>
+
+myClientSocket::myClientSocket(qintptr socketDiscriptor, QObject *parent) :
+    QTcpSocket(parent)
+{    
+    connect(this,SIGNAL(readyRead()),this,SLOT(ClientReadDataSlot()));//挂接读取数据信号
+    connect(this,SIGNAL(disconnected()),this,SLOT(ClientDisConnectSlot()));//关闭连接时，发送断开连接信号
+    connect(this,SIGNAL(disconnected()),this,SLOT(deleteLater()));//关闭连接时，对象自动删除
+}
+
+void myClientSocket::ClientReadDataSlot()
+{
+    //读取完整一条数据并发送信号
+
+    dataArray=this->readAll();
+    qDebug() << dataArray.data ();
+    emit ClientReadDataSignal (clientID,this->peerAddress().toString (),this->peerPort(),dataArray);
+}
+
+void myClientSocket::ClientDisConnectSlot()
+{
+    //断开连接时，发送断开信号
+    emit ClientDisConnectSignal (clientID,this->peerAddress().toString(),this->peerPort());
+}
